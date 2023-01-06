@@ -1,6 +1,6 @@
 
 __author__ = "Jérôme KIEFFER"
-__date__  = "18/10/2022"
+__date__  = "06/01/2023"
 __copyright__ = "2021-2022, ESRF, France"
 __licence__ = "MIT"
 
@@ -341,15 +341,9 @@ class OclMultiAnalyzer:
 
         self.arm = arm = numpy.deg2rad(arm)
         logger.info(f"Allocate `out_norm` on device for {4*self.NUM_CRYSTAL*nbin/1e6:.3f} MB")
-        self.buffers["out_norm"] = cla.empty(self.queue, (self.NUM_CRYSTAL, nbin), dtype=numpy.int32)
+        self.buffers["out_norm"] = cla.zeros(self.queue, (self.NUM_CRYSTAL, nbin), dtype=numpy.int32)
         logger.info(f"Allocate `out_signal` on device for {4*self.NUM_CRYSTAL*nbin*num_col/1e6:.3f} MB")
-        self.buffers["out_signal"] = cla.empty(self.queue, (self.NUM_CRYSTAL, nbin, num_col), dtype=numpy.int32)
-        evt = self.prg.memset(self.queue, (nbin, self.NUM_CRYSTAL), None,
-                              numpy.uint32(self.NUM_CRYSTAL),
-                              numpy.uint32(nbin),
-                              numpy.uint32(num_col),
-                              self.buffers["out_signal"].data,
-                              self.buffers["out_norm"].data)
+        self.buffers["out_signal"] = cla.zeros(self.queue, (self.NUM_CRYSTAL, nbin, num_col), dtype=numpy.int32)
         logger.info(f"Allocate partial `roicoll` on device for {numpy.dtype(numpy.int32).itemsize*self.NUM_CRYSTAL*num_row*num_col*max_frames/1e6:.3f} MB")
         self.buffers["roicoll"] = cla.empty(self.queue, shape, dtype=numpy.int32)
         logger.info(f"Allocate partial  `mon` on device for {numpy.dtype(numpy.int32).itemsize*max_frames/1e6:.3f} MB")
@@ -381,7 +375,6 @@ class OclMultiAnalyzer:
         self.buffers["cycles"] = cla.empty(self.queue, (1, 1, 1), dtype=numpy.uint8)
         kwags["do_debug"] = numpy.int32(0)
         kwags["cycles"] = self.buffers["cycles"].data
-        evt.wait()
 
     def partial_integate(self, roicol_description, roicol_data):
         start = roicol_description.start

@@ -4,24 +4,6 @@
 #define uint32_t unsigned int
 #define uint8_t unsigned char
 
-// Memset output arrays
-kernel void memset(
-                uint32_t num_crystal,       // numberof analyzer crystal
-                uint32_t num_bin,           // number of bins 
-                uint32_t num_col,           // number of columns in one ROI
-                global int32_t *out_signal, // shape (num_analyzer, num_bin, num_col)
-                global int32_t *out_norm    // shape (num_analyzer, num_bin)            
-                ){
-    size_t bin = get_global_id(0);
-    size_t ida = get_global_id(1);
-    if ((ida<num_crystal) && (bin<num_bin)){
-        size_t pos = ida*num_bin + bin;
-        out_norm[pos] = 0;
-        for (size_t i=pos*num_col;i<pos*(num_col+1); i++)
-            out_signal[i] = 0;
-    }
-}
-
 /*
  * Set of function to calculate tth !
  */
