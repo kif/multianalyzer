@@ -194,15 +194,9 @@ class OclMultiAnalyzer:
         except:
             max_frames = None
         logger.info(f"Allocate `out_norm` on device for {4*self.NUM_CRYSTAL*nbin/1e6}MB")
-        self.buffers["out_norm"] = cla.empty(self.queue, (self.NUM_CRYSTAL, nbin), dtype=numpy.int32)
+        self.buffers["out_norm"] = cla.zeros(self.queue, (self.NUM_CRYSTAL, nbin), dtype=numpy.int32)
         logger.info(f"Allocate `out_signal` on device for {4*self.NUM_CRYSTAL*nbin*num_col/1e6}MB")
-        self.buffers["out_signal"] = cla.empty(self.queue, (self.NUM_CRYSTAL, nbin, num_col), dtype=numpy.int32)
-        evt = self.prg.memset(self.queue, (nbin, self.NUM_CRYSTAL), None,
-                              numpy.uint32(self.NUM_CRYSTAL),
-                              numpy.uint32(nbin),
-                              numpy.uint32(num_col),
-                              self.buffers["out_signal"].data,
-                              self.buffers["out_norm"].data)
+        self.buffers["out_signal"] = cla.zeros(self.queue, (self.NUM_CRYSTAL, nbin, num_col), dtype=numpy.int32)
         if max_frames:
             shape = self.set_shape(columnorder, max_frames, num_col, num_row)
             logger.info(f"Allocate partial `roicoll` on device for {numpy.dtype(numpy.int32).itemsize*self.NUM_CRYSTAL*num_row*num_col*max_frames/1e6}MB")
