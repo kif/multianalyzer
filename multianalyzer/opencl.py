@@ -1,9 +1,8 @@
 
 __author__ = "Jérôme KIEFFER"
-__date__  = "18/10/2022"
+__date__ = "25/05/2023"
 __copyright__ = "2021-2022, ESRF, France"
 __licence__ = "MIT"
-
 
 import os
 import logging
@@ -12,6 +11,7 @@ from collections import OrderedDict
 import numpy
 import pyopencl
 from pyopencl import array as cla
+from .file_io import Result
 
 
 class OclMultiAnalyzer:
@@ -287,9 +287,9 @@ class OclMultiAnalyzer:
                 cycles = self.buffers["cycles"].get()
         evt.wait()
         if do_debug:
-            return tth_b, self.buffers["out_signal"].get(), self.buffers["out_norm"].get(), cycles
+            return Result(tth_b, self.buffers["out_signal"].get(), self.buffers["out_norm"].get(), cycles)
         else:
-            return tth_b, self.buffers["out_signal"].get(), self.buffers["out_norm"].get()
+            return Result(tth_b, self.buffers["out_signal"].get(), self.buffers["out_norm"].get())
 
 #-----------------------------------------------
 #    Multi pass implementation
@@ -422,7 +422,7 @@ class OclMultiAnalyzer:
         del sub_arm
 
     def finish_integrate(self):
-        return self.tth_b, self.buffers["out_signal"].get(), self.buffers["out_norm"].get()
+        return Result(self.tth_b, self.buffers["out_signal"].get(), self.buffers["out_norm"].get())
 
     def reset(self):
         "reset the integrator and zeros out all arrays"
