@@ -1,9 +1,8 @@
 
 __author__ = "Jérôme KIEFFER"
-__date__  = "18/10/2022"
-__copyright__ = "2021-2022, ESRF, France"
+__date__ = "25/05/2023"
+__copyright__ = "2021-2023, ESRF, France"
 __licence__ = "MIT"
-
 
 import os
 import logging
@@ -387,8 +386,8 @@ class OclMultiAnalyzer:
         start = roicol_description.start
         stop = roicol_description.stop
         kwags = self.kernel_arguments["integrate"]
-        num_row = kwags["num_row"]
-        num_col = kwags["num_col"]
+        # num_row = kwags["num_row"]
+        # num_col = kwags["num_col"]
         max_frames = kwags["num_frame"]
         roicol = numpy.ascontiguousarray(roicol_data, numpy.int32).reshape((-1,) + self.shape[1:])
         if stop - start == max_frames:
