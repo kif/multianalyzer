@@ -374,8 +374,8 @@ class OclMultiAnalyzer:
         start = roicol_description.start
         stop = roicol_description.stop
         kwags = self.kernel_arguments["integrate"]
-        num_row = kwags["num_row"]
-        num_col = kwags["num_col"]
+        # num_row = kwags["num_row"]
+        # num_col = kwags["num_col"]
         max_frames = kwags["num_frame"]
         roicol = numpy.ascontiguousarray(roicol_data, numpy.int32).reshape((-1,) + self.shape[1:])
         if stop - start == max_frames:
