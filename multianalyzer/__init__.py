@@ -1,6 +1,6 @@
 __authors__ = ["Jérôme Kieffer"]
 __license__ = "MIT"
-__date__ = "08/10/2021"
+__date__ = "25/05/2023"
 
 import os as _os
 
@@ -21,4 +21,4 @@ except ImportError:
         % project
     )
 from ._multianalyzer import MultiAnalyzer
-from .file_io import ID22_bliss_parser, topas_parser
+from .file_io import ID22_bliss_parser, topas_parser, Result

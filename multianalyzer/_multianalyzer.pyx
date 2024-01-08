@@ -4,7 +4,7 @@
 ##cython: linetrace=True
 
 __author__ = "Jérôme KIEFFER"
-__date__  = "18/10/2022"
+__date__  = "25/05/2023"
 __copyright__ = "2021-2022, ESRF, France"
 __licence__ = "MIT"
 
@@ -19,6 +19,7 @@ ctypedef double float64_t
 ctypedef float float32_t
 from cython.parallel import prange
 import numpy
+from .file_io import Result
 
 
 cdef class MultiAnalyzer:
@@ -635,9 +636,9 @@ cdef class MultiAnalyzer:
                                     value = roicoll[frame, ida, idx_row, idx_col]
                                 signal_b[ida, idx, idx_col] = signal_b[ida, idx, idx_col] + value
         if self.do_debug:
-            return numpy.asarray(tth_b), numpy.asarray(signal_b), numpy.asarray(norm_b), numpy.asarray(self.cycles)
+            return Result(numpy.asarray(tth_b), numpy.asarray(signal_b), numpy.asarray(norm_b), numpy.asarray(self.cycles))
         else:
-            return numpy.asarray(tth_b), numpy.asarray(signal_b), numpy.asarray(norm_b)
+            return Result(numpy.asarray(tth_b), numpy.asarray(signal_b), numpy.asarray(norm_b))
 
 #-----------------------------------------------
 #    Multi pass implementation
@@ -761,7 +762,7 @@ cdef class MultiAnalyzer:
                                     self.out_signal[ida, idx, idx_col] = self.out_signal[ida, idx, idx_col] + value
 
     def finish_integrate(self):
-        return numpy.asarray(self.out_tth), numpy.asarray(self.out_signal), numpy.asarray(self.out_norm)
+        return Result(numpy.asarray(self.out_tth), numpy.asarray(self.out_signal), numpy.asarray(self.out_norm))
 
     def reset(self):
         "reset the integrator and zeros out all arrays"

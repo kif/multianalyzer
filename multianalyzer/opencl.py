@@ -1,7 +1,7 @@
 
 __author__ = "Jérôme KIEFFER"
 __date__ = "25/05/2023"
-__copyright__ = "2021-2023, ESRF, France"
+__copyright__ = "2021-2024, ESRF, France"
 __licence__ = "MIT"
 
 import os
@@ -11,6 +11,7 @@ from collections import OrderedDict
 import numpy
 import pyopencl
 from pyopencl import array as cla
+from .file_io import Result
 
 
 class OclMultiAnalyzer:
@@ -193,15 +194,9 @@ class OclMultiAnalyzer:
         except:
             max_frames = None
         logger.info(f"Allocate `out_norm` on device for {4*self.NUM_CRYSTAL*nbin/1e6}MB")
-        self.buffers["out_norm"] = cla.empty(self.queue, (self.NUM_CRYSTAL, nbin), dtype=numpy.int32)
+        self.buffers["out_norm"] = cla.zeros(self.queue, (self.NUM_CRYSTAL, nbin), dtype=numpy.int32)
         logger.info(f"Allocate `out_signal` on device for {4*self.NUM_CRYSTAL*nbin*num_col/1e6}MB")
-        self.buffers["out_signal"] = cla.empty(self.queue, (self.NUM_CRYSTAL, nbin, num_col), dtype=numpy.int32)
-        evt = self.prg.memset(self.queue, (nbin, self.NUM_CRYSTAL), None,
-                              numpy.uint32(self.NUM_CRYSTAL),
-                              numpy.uint32(nbin),
-                              numpy.uint32(num_col),
-                              self.buffers["out_signal"].data,
-                              self.buffers["out_norm"].data)
+        self.buffers["out_signal"] = cla.zeros(self.queue, (self.NUM_CRYSTAL, nbin, num_col), dtype=numpy.int32)
         if max_frames:
             shape = self.set_shape(columnorder, max_frames, num_col, num_row)
             logger.info(f"Allocate partial `roicoll` on device for {numpy.dtype(numpy.int32).itemsize*self.NUM_CRYSTAL*num_row*num_col*max_frames/1e6}MB")
@@ -286,9 +281,9 @@ class OclMultiAnalyzer:
                 cycles = self.buffers["cycles"].get()
         evt.wait()
         if do_debug:
-            return tth_b, self.buffers["out_signal"].get(), self.buffers["out_norm"].get(), cycles
+            return Result(tth_b, self.buffers["out_signal"].get(), self.buffers["out_norm"].get(), cycles)
         else:
-            return tth_b, self.buffers["out_signal"].get(), self.buffers["out_norm"].get()
+            return Result(tth_b, self.buffers["out_signal"].get(), self.buffers["out_norm"].get())
 
 #-----------------------------------------------
 #    Multi pass implementation
@@ -340,15 +335,9 @@ class OclMultiAnalyzer:
 
         self.arm = arm = numpy.deg2rad(arm)
         logger.info(f"Allocate `out_norm` on device for {4*self.NUM_CRYSTAL*nbin/1e6:.3f} MB")
-        self.buffers["out_norm"] = cla.empty(self.queue, (self.NUM_CRYSTAL, nbin), dtype=numpy.int32)
+        self.buffers["out_norm"] = cla.zeros(self.queue, (self.NUM_CRYSTAL, nbin), dtype=numpy.int32)
         logger.info(f"Allocate `out_signal` on device for {4*self.NUM_CRYSTAL*nbin*num_col/1e6:.3f} MB")
-        self.buffers["out_signal"] = cla.empty(self.queue, (self.NUM_CRYSTAL, nbin, num_col), dtype=numpy.int32)
-        evt = self.prg.memset(self.queue, (nbin, self.NUM_CRYSTAL), None,
-                              numpy.uint32(self.NUM_CRYSTAL),
-                              numpy.uint32(nbin),
-                              numpy.uint32(num_col),
-                              self.buffers["out_signal"].data,
-                              self.buffers["out_norm"].data)
+        self.buffers["out_signal"] = cla.zeros(self.queue, (self.NUM_CRYSTAL, nbin, num_col), dtype=numpy.int32)
         logger.info(f"Allocate partial `roicoll` on device for {numpy.dtype(numpy.int32).itemsize*self.NUM_CRYSTAL*num_row*num_col*max_frames/1e6:.3f} MB")
         self.buffers["roicoll"] = cla.empty(self.queue, shape, dtype=numpy.int32)
         logger.info(f"Allocate partial  `mon` on device for {numpy.dtype(numpy.int32).itemsize*max_frames/1e6:.3f} MB")
@@ -380,7 +369,6 @@ class OclMultiAnalyzer:
         self.buffers["cycles"] = cla.empty(self.queue, (1, 1, 1), dtype=numpy.uint8)
         kwags["do_debug"] = numpy.int32(0)
         kwags["cycles"] = self.buffers["cycles"].data
-        evt.wait()
 
     def partial_integate(self, roicol_description, roicol_data):
         start = roicol_description.start
@@ -421,7 +409,7 @@ class OclMultiAnalyzer:
         del sub_arm
 
     def finish_integrate(self):
-        return self.tth_b, self.buffers["out_signal"].get(), self.buffers["out_norm"].get()
+        return Result(self.tth_b, self.buffers["out_signal"].get(), self.buffers["out_norm"].get())
 
     def reset(self):
         "reset the integrator and zeros out all arrays"

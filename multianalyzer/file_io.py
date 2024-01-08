@@ -1,6 +1,6 @@
 __authors__ = ["Jérôme Kieffer"]
 __license__ = "MIT"
-__date__ = "18/10/2022"
+__date__ = "25/05/2023"
 __copyright__ = "2021-2022, ESRF, France"
 
 import os
@@ -38,6 +38,7 @@ from . import version
 BlockDescription = namedtuple("BlockDescription", "filename dataset start stop")
 BlockRead = namedtuple("BlockRead", "description data")
 TOTAL_MEM = os.sysconf('SC_PAGE_SIZE') * os.sysconf('SC_PHYS_PAGES')
+Result = namedtuple("Result", "tth signal norm cycles", default=[None])
 
 
 def topas_parser(infile):
@@ -564,7 +565,7 @@ def save_rebin(filename, beamline="id22", name="id22rebin", topas=None, res=None
             tth_ds.attrs["unit"] = "deg"
 
             I_sum = res[1]
-            sum_ds = data_grp.create_dataset("I_sum", data=numpy.transpose(I_sum, axes=[0,2,1]), **CMP)
+            sum_ds = data_grp.create_dataset("I_sum", data=numpy.transpose(I_sum, axes=[0, 2, 1]), **CMP)
             sum_ds.attrs["interpretation"] = "spectrum"
             norm = res[2]
             norm_ds = data_grp.create_dataset("norm", data=norm, **CMP)

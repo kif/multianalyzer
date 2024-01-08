@@ -32,7 +32,7 @@ __author__ = "Jérôme Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "17/10/2022"
+__date__ = "25/05/2023"
 __status__ = "development"
 
 import os
@@ -253,7 +253,7 @@ def rebin_result_generator(filename=None, entries=None, hdf5_data=None, output=N
         dtth = step or (abs(numpy.median(arm[1:] - arm[:-1])))
         if range:
             tth_min = range[0] if numpy.isfinite(range[0]) else  arm.min() + psi.min()
-            tth_max = range[0] if numpy.isfinite(range[1]) else  arm.max() + psi.max()
+            tth_max = range[1] if numpy.isfinite(range[1]) else  arm.max() + psi.max()
         else:
             tth_min = arm.min() + psi.min()
             tth_max = arm.max() + psi.max()
@@ -314,19 +314,18 @@ def rebin_result_generator(filename=None, entries=None, hdf5_data=None, output=N
                                         width=width or param.get("wg", 0.0),
                                         dtthw=delta2theta)
 
-        if debug:
-            numpy.savez("dump", res)
+        if debug and res.cycles is not None:
+            numpy.savez("dump", res.cycles)
 
         if output:
             print(f"Save to {output}::{entry}")
             with timer.timeit_write():
                 save_rebin(output, beamline="id22", name="id22rebin", topas=param, res=res, start_time=timer.start_time, entry=entry)
-        yield res
+        yield entry, res
 
 
 def rebin_file(**kwargs):
-    for _ in rebin_result_generator(**kwargs):
-        pass
+    return [entry for entry, _ in rebin_result_generator(**kwargs)]
 
 
 def main():
