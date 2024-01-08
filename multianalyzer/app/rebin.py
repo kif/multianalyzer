@@ -32,7 +32,7 @@ __author__ = "Jérôme Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "17/10/2022"
+__date__ = "25/05/2023"
 __status__ = "development"
 
 import os
@@ -314,8 +314,8 @@ def rebin_result_generator(filename=None, entries=None, hdf5_data=None, output=N
                                         width=width or param.get("wg", 0.0),
                                         dtthw=delta2theta)
 
-        if debug:
-            numpy.savez("dump", res)
+        if debug and res.cycles is not None:
+            numpy.savez("dump", res.cycles)
 
         if output:
             print(f"Save to {output}::{entry}")
