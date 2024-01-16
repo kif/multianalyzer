@@ -38,7 +38,10 @@ from . import version
 BlockDescription = namedtuple("BlockDescription", "filename dataset start stop")
 BlockRead = namedtuple("BlockRead", "description data")
 TOTAL_MEM = os.sysconf('SC_PAGE_SIZE') * os.sysconf('SC_PHYS_PAGES')
-Result = namedtuple("Result", "tth signal norm cycles", defaults=(None,)*4)
+Result = namedtuple(
+    "Result", "tth signal norm cycles",
+    defaults=(None, None, None, None)
+)
 
 
 def topas_parser(infile):
