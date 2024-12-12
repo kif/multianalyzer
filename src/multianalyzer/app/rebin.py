@@ -5,7 +5,7 @@
 #             https://github.com/kif/multianalyzer
 #
 #
-#    Copyright (C) 2021-2021 European Synchrotron Radiation Facility, Grenoble, France
+#    Copyright (C) 2021-2024 European Synchrotron Radiation Facility, Grenoble, France
 #
 #    Authors: Jérôme Kieffer <Jerome.Kieffer@ESRF.eu>
 #
@@ -32,7 +32,7 @@ __author__ = "Jérôme Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "25/05/2023"
+__date__ = "12/12/2024"
 __status__ = "development"
 
 import os
@@ -250,13 +250,18 @@ def rebin_result_generator(filename=None, entries=None, hdf5_data=None, output=N
                 arm = arm[:kept_points]
                 mon = mon[:kept_points]
                 logger.warning(f"Some arrays have different length, was the scan interrupted ? shrinking scan size: {kept_points} !")
-        dtth = step or (abs(numpy.median(arm[1:] - arm[:-1])))
+        scan = hdf5_data[entry]["scan"]
+        dtth = step or scan.step_size
+        tth_min = scan.start + psi.min()
+        tth_max = scan.stop + psi.max()
         if range:
-            tth_min = range[0] if numpy.isfinite(range[0]) else  arm.min() + psi.min()
-            tth_max = range[1] if numpy.isfinite(range[1]) else  arm.max() + psi.max()
+            if numpy.isfinite(range[0]): 
+                tth_min = range[0]
+            if numpy.isfinite(range[1]):
+                tth_max = range[1]
         else:
-            tth_min = arm.min() + psi.min()
-            tth_max = arm.max() + psi.max()
+            tth_min = scan.start + psi.min()
+            tth_max = scan.stop + psi.max()
 
         print(f"Rebin data from {source_name}::{entry}")
         if "roicol" in hdf5_data[entry]:

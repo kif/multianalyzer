@@ -1,6 +1,6 @@
 __authors__ = ["Jérôme Kieffer"]
 __license__ = "MIT"
-__date__ = "25/05/2023"
+__date__ = "12/12/2024"
 __copyright__ = "2021-2022, ESRF, France"
 
 import os
@@ -42,6 +42,8 @@ Result = namedtuple(
     "Result", "tth signal norm cycles",
     defaults=(None, None, None, None)
 )
+FSCAN = namedtuple("FSCAN", "motor start step_size npoints step_time")
+FSCAN.stop = property(lambda self: self.start+self.step_size*self.npoints)
 
 
 def topas_parser(infile):
@@ -129,7 +131,19 @@ def ID22_bliss_parser(infile, entries=None, exclude_entries=None, block_size=Non
             try:
                 entry_grp = nxs.h5[entry]
                 roicol = entry_grp["measurement/eiger_roi_collection"]
-                arm = entry_grp["measurement/tth"]
+                scan_col = entry_grp["instrument/fscan_parameters"]
+                motor_name= scan_col["motor"][()]
+                try:
+                    motor_name = motor_name.decode()
+                except:
+                    pass
+                scan = entry_dict["fscan"] = FSCAN(motor_name, 
+                            scan_col["start_pos"][()],
+                            scan_col["step_size"][()],
+                            scan_col["npoints"][()],
+                            scan_col["step_time"][()])
+                
+                arm = entry_grp[f"measurement/{scan.motor}"]
                 mon = entry_grp["measurement/mon"]
                 kept_points = min(len(roicol), len(arm), len(mon))
                 entry_dict["arm"] = arm[:kept_points]
