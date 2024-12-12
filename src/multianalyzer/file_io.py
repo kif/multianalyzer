@@ -601,7 +601,8 @@ def save_rebin(filename, beamline="id22", name="id22rebin", topas=None, res=None
                 Ima_ds.attrs["axes"] = ["offset", "2th"]
                 offset_ds = data_grp.create_dataset("offset", data=numpy.rad2deg(topas["offset"]))
                 offset_ds.attrs["unit"] = "deg"
-                weights = numpy.array(topas.get("scale"))
+                if "scale" in topas:
+                    weights = numpy.array(topas["scale"])
             else:
                 Ima_ds.attrs["axes"] = [".", "2th"]
 
@@ -611,6 +612,7 @@ def save_rebin(filename, beamline="id22", name="id22rebin", topas=None, res=None
             weights = numpy.atleast_2d(weights).T
             # print(weights.shape)
             # print(scale.shape)
+            # print(I_sum.shape, weights.shape)
             I_avg = (weights * scale * I_sum).sum(axis=0) / (weights * norm).sum(axis=0)
             I_ds = data_grp.create_dataset("I_avg", data=I_avg , **CMP)
             I_ds.attrs["interpretation"] = "spectrum"
@@ -619,7 +621,7 @@ def save_rebin(filename, beamline="id22", name="id22rebin", topas=None, res=None
 
             data_grp.attrs["signal"] = posixpath.basename(I_ds.name)
             entry.attrs["default"] = data_grp.name
-            if len(res) >= 4:
+            if len(res) >= 4 and res[3] is not None:
                 debug_ds = data_grp.create_dataset("cycles", data=res[3] , **CMP)
                 debug_ds.attrs["interpretation"] = "image"
                 debug_ds.attrs["info"] = "Number of refinement cycle to converge 2theta"
