@@ -42,7 +42,6 @@ from argparse import ArgumentParser
 from queue import Queue
 from threading import Event
 import logging
-logging.basicConfig()
 logger = logging.getLogger("id22rebin")
 
 import numpy
@@ -334,6 +333,13 @@ def rebin_file(**kwargs):
 
 
 def main():
+    """Entry point of the program, called by the generated warpper"""
+    try:
+        logging.basicConfig(level=logging.WARNING, force=True)
+    except ValueError:
+        logging.basicConfig(level=logging.WARNING)
+    logging.captureWarnings(True)
+    
     options = vars(parse())
     filenames = options.pop("args")
     timer = Timer()
@@ -343,9 +349,4 @@ def main():
 
 
 if __name__ == "__main__":
-    try:
-        logging.basicConfig(level=logging.WARNING, force=True)
-    except ValueError:
-        logging.basicConfig(level=logging.WARNING)
-    logging.captureWarnings(True)
     main()
