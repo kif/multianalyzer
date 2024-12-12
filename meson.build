@@ -24,4 +24,11 @@ py_mod = import('python')
 py = py_mod.find_installation()
 py_dep = py.dependency()
 
+py.install_sources([
+    'version.py',
+],
+  pure: false,    # Will be installed next to binaries
+  subdir: 'multianalyzer'  # Folder relative to site-packages to install to
+)
+
 subdir('src/multianalyzer')

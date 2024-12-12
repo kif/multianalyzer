@@ -1,7 +1,7 @@
 __authors__ = ["Jérôme Kieffer"]
 __license__ = "MIT"
 __date__ = "12/12/2024"
-__copyright__ = "2021-2022, ESRF, France"
+__copyright__ = "2021-2024, ESRF, France"
 
 import os
 import posixpath
@@ -33,7 +33,7 @@ except ImportError:
 else:
     CMP = hdf5plugin.Bitshuffle()
 
-from . import version
+from . import __version__
 
 BlockDescription = namedtuple("BlockDescription", "filename dataset start stop")
 BlockRead = namedtuple("BlockRead", "description data")
@@ -447,8 +447,8 @@ class Nexus(object):
         """
         entry_grp = self.new_entry(entry)
         pyFAI_grp = self.new_class(entry_grp, subentry, "NXsubentry")
-        pyFAI_grp["definition_local"] = str("pyFAI")
-        pyFAI_grp["definition_local"].attrs["version"] = str(version)
+        pyFAI_grp["definition_local"] = str("multianalyzer")
+        pyFAI_grp["definition_local"].attrs["version"] = str(__version__)
         det_grp = self.new_class(pyFAI_grp, name, "NXdetector")
         return det_grp
 
@@ -565,7 +565,7 @@ def save_rebin(filename, beamline="id22", name="id22rebin", topas=None, res=None
         process_grp = nxs.new_class(entry, "id22rebin", class_type="NXprocess")
         process_grp["program"] = name
         process_grp["sequence_index"] = 1
-        process_grp["version"] = version
+        process_grp["version"] = __version__
         process_grp["date"] = get_isotime()
         process_grp.create_dataset("argv", data=numpy.array(sys.argv, h5py.string_dtype("utf8"))).attrs["help"] = "Command line arguments"
         process_grp.create_dataset("cwd", data=os.getcwd()).attrs["help"] = "Working directory"

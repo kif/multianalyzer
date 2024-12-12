@@ -1,15 +1,15 @@
 __authors__ = ["Jérôme Kieffer"]
 __license__ = "MIT"
-__date__ = "25/05/2023"
+__date__ = "12/12/2024"
 
 import os as _os
 
 project = _os.path.basename(_os.path.dirname(_os.path.abspath(__file__)))
 
 try:
-    from ._version import __date__ as date  # noqa
-    from ._version import (
-        version,
+    from .version import (
+        __date__ as date,
+        version as __version__,
         version_info,
         hexversion,
         strictversion,

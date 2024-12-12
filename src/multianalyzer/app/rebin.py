@@ -56,7 +56,7 @@ try:
 except ImportError:
     logger.debug("No socket opened for debugging. Please install rfoo")
 
-from .. import _version
+from .. import __version__
 from .._multianalyzer import MultiAnalyzer
 try:
     from ..opencl import OclMultiAnalyzer
@@ -86,7 +86,7 @@ def parse():
     epilog = """This software is MIT-licenced and available from https://github.com/kif/multianalyzer"""
     usage = f"{name} [options] ROIcol.h5"
 
-    version = f"{name} version {_version.version}"
+    version = f"{name} version {__version__}"
     parser = ArgumentParser(usage=usage, description=description, epilog=epilog)
     parser.add_argument("-v", "--version", action='version', version=version)
 
