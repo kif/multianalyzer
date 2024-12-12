@@ -137,7 +137,7 @@ def ID22_bliss_parser(infile, entries=None, exclude_entries=None, block_size=Non
                     motor_name = motor_name.decode()
                 except:
                     pass
-                scan = entry_dict["fscan"] = FSCAN(motor_name, 
+                scan = entry_dict["scan"] = FSCAN(motor_name, 
                             scan_col["start_pos"][()],
                             scan_col["step_size"][()],
                             scan_col["npoints"][()],
