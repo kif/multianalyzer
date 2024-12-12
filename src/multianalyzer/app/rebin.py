@@ -27,7 +27,7 @@
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #  THE SOFTWARE.
 
-"""utility rebin multi-analyzer data"""
+""" id22rebin utility to rebin multi-analyzer data"""
 __author__ = "Jérôme Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
@@ -42,7 +42,8 @@ from argparse import ArgumentParser
 from queue import Queue
 from threading import Event
 import logging
-logger = logging.getLogger(__name__)
+logging.basicConfig()
+logger = logging.getLogger("id22rebin")
 
 import numpy
 try:
@@ -153,7 +154,6 @@ def parse():
     elif options.info:
         logger.setLevel(logging.INFO)
         logging.root.setLevel(level=logging.INFO)
-
     return options
 
 
