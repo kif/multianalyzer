@@ -138,10 +138,10 @@ def ID22_bliss_parser(infile, entries=None, exclude_entries=None, block_size=Non
                 except:
                     pass
                 scan = entry_dict["scan"] = FSCAN(motor_name, 
-                            scan_col["start_pos"][()],
-                            scan_col["step_size"][()],
-                            scan_col["npoints"][()],
-                            scan_col["step_time"][()])
+                            float(scan_col["start_pos"][()]),
+                            float(scan_col["step_size"][()]),
+                            int(scan_col["npoints"][()]),
+                            float(scan_col["step_time"][()]))
                 
                 arm = entry_grp[f"measurement/{scan.motor}"]
                 mon = entry_grp["measurement/mon"]
@@ -160,8 +160,9 @@ def ID22_bliss_parser(infile, entries=None, exclude_entries=None, block_size=Non
 
                 entry_dict["tha"] = entry_grp["instrument/positioners/manom"][()]
                 entry_dict["thd"] = entry_grp["instrument/positioners/mantth"][()]
-            except KeyError:
-                continue
+            except KeyError as error:
+                logger.warning(f"Unable to parse entry {entry}: {type(error)}: {error}")
+                
             res[entry] = entry_dict
     if used_memory < 2 * block_size:
         "small dataset"
