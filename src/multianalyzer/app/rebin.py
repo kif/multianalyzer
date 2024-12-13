@@ -203,8 +203,8 @@ def rebin_result_generator(filename=None, entries=None, hdf5_data=None, output=N
     tha = numpy.rad2deg(param["manom"])
     thd = numpy.rad2deg(param["mantth"])
 
-    if num_analyzer:
-        assert num_analyzer == len(center)
+    if num_analyzer and num_analyzer != len(center):
+        raise RuntimeError(f"*num_analyzer* (value: {num_analyzer}) needs to be consistent with the *topas* param file which contains ({len(center)}) entries")
 
     # Finally initialize the rebinning engine.
     if device and OclMultiAnalyzer:
@@ -258,9 +258,6 @@ def rebin_result_generator(filename=None, entries=None, hdf5_data=None, output=N
                 tth_min = range[0]
             if numpy.isfinite(range[1]):
                 tth_max = range[1]
-        else:
-            tth_min = scan.start + psi.min()
-            tth_max = scan.stop + psi.max()
 
         print(f"Rebin data from {source_name}::{entry}")
         if "roicol" in hdf5_data[entry]:
