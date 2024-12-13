@@ -32,7 +32,7 @@ __author__ = "Jérôme Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "12/12/2024"
+__date__ = "13/12/2024"
 __status__ = "development"
 
 import os
@@ -117,8 +117,8 @@ def parse():
                            help="Number of analyzer crystals (13)")
     subparser.add_argument("--num-row", dest="num_row", type=int, default=512,
                            help="Number of row in ROI-collection (512)")
-    subparser.add_argument("--num-col", dest="num_col", type=int, default=31,
-                           help="Number of columns in ROI-collection (31)")
+    subparser.add_argument("--num-col", dest="num_col", type=int, default=1,
+                           help="Number of columns in ROI-collection (1)")
     subparser.add_argument("--order", type=int, default=0,
                            help="Order of elements: 0:(col, analyzer, row), 1:(analyzer, col, row), 2: analyzer, row, col")
     subparser = parser.add_argument_group('Rebinning options')
