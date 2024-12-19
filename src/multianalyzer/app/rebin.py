@@ -5,7 +5,7 @@
 #             https://github.com/kif/multianalyzer
 #
 #
-#    Copyright (C) 2021-2021 European Synchrotron Radiation Facility, Grenoble, France
+#    Copyright (C) 2021-2024 European Synchrotron Radiation Facility, Grenoble, France
 #
 #    Authors: Jérôme Kieffer <Jerome.Kieffer@ESRF.eu>
 #
@@ -27,12 +27,12 @@
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #  THE SOFTWARE.
 
-"""utility rebin multi-analyzer data"""
+""" id22rebin utility to rebin multi-analyzer data"""
 __author__ = "Jérôme Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "25/05/2023"
+__date__ = "13/12/2024"
 __status__ = "development"
 
 import os
@@ -42,7 +42,7 @@ from argparse import ArgumentParser
 from queue import Queue
 from threading import Event
 import logging
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("id22rebin")
 
 import numpy
 try:
@@ -56,7 +56,7 @@ try:
 except ImportError:
     logger.debug("No socket opened for debugging. Please install rfoo")
 
-from .. import _version
+from .. import __version__
 from .._multianalyzer import MultiAnalyzer
 try:
     from ..opencl import OclMultiAnalyzer
@@ -86,7 +86,7 @@ def parse():
     epilog = """This software is MIT-licenced and available from https://github.com/kif/multianalyzer"""
     usage = f"{name} [options] ROIcol.h5"
 
-    version = f"{name} version {_version.version}"
+    version = f"{name} version {__version__}"
     parser = ArgumentParser(usage=usage, description=description, epilog=epilog)
     parser.add_argument("-v", "--version", action='version', version=version)
 
@@ -117,8 +117,8 @@ def parse():
                            help="Number of analyzer crystals (13)")
     subparser.add_argument("--num-row", dest="num_row", type=int, default=512,
                            help="Number of row in ROI-collection (512)")
-    subparser.add_argument("--num-col", dest="num_col", type=int, default=31,
-                           help="Number of columns in ROI-collection (31)")
+    subparser.add_argument("--num-col", dest="num_col", type=int, default=1,
+                           help="Number of columns in ROI-collection (1)")
     subparser.add_argument("--order", type=int, default=0,
                            help="Order of elements: 0:(col, analyzer, row), 1:(analyzer, col, row), 2: analyzer, row, col")
     subparser = parser.add_argument_group('Rebinning options')
@@ -153,7 +153,6 @@ def parse():
     elif options.info:
         logger.setLevel(logging.INFO)
         logging.root.setLevel(level=logging.INFO)
-
     return options
 
 
@@ -204,8 +203,8 @@ def rebin_result_generator(filename=None, entries=None, hdf5_data=None, output=N
     tha = numpy.rad2deg(param["manom"])
     thd = numpy.rad2deg(param["mantth"])
 
-    if num_analyzer:
-        assert num_analyzer == len(center)
+    if num_analyzer and num_analyzer != len(center):
+        raise RuntimeError(f"*num_analyzer* (value: {num_analyzer}) needs to be consistent with the *topas* param file which contains ({len(center)}) entries")
 
     # Finally initialize the rebinning engine.
     if device and OclMultiAnalyzer:
@@ -250,13 +249,15 @@ def rebin_result_generator(filename=None, entries=None, hdf5_data=None, output=N
                 arm = arm[:kept_points]
                 mon = mon[:kept_points]
                 logger.warning(f"Some arrays have different length, was the scan interrupted ? shrinking scan size: {kept_points} !")
-        dtth = step or (abs(numpy.median(arm[1:] - arm[:-1])))
+        scan = hdf5_data[entry]["scan"]
+        dtth = step or scan.step_size
+        tth_min = scan.start + psi.min()
+        tth_max = scan.stop + psi.max()
         if range:
-            tth_min = range[0] if numpy.isfinite(range[0]) else  arm.min() + psi.min()
-            tth_max = range[1] if numpy.isfinite(range[1]) else  arm.max() + psi.max()
-        else:
-            tth_min = arm.min() + psi.min()
-            tth_max = arm.max() + psi.max()
+            if numpy.isfinite(range[0]): 
+                tth_min = range[0]
+            if numpy.isfinite(range[1]):
+                tth_max = range[1]
 
         print(f"Rebin data from {source_name}::{entry}")
         if "roicol" in hdf5_data[entry]:
@@ -329,6 +330,13 @@ def rebin_file(**kwargs):
 
 
 def main():
+    """Entry point of the program, called by the generated warpper"""
+    try:
+        logging.basicConfig(level=logging.WARNING, force=True)
+    except ValueError:
+        logging.basicConfig(level=logging.WARNING)
+    logging.captureWarnings(True)
+    
     options = vars(parse())
     filenames = options.pop("args")
     timer = Timer()
@@ -338,9 +346,4 @@ def main():
 
 
 if __name__ == "__main__":
-    try:
-        logging.basicConfig(level=logging.WARNING, force=True)
-    except ValueError:
-        logging.basicConfig(level=logging.WARNING)
-    logging.captureWarnings(True)
     main()

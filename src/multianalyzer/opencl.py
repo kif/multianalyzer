@@ -1,6 +1,6 @@
 
 __author__ = "Jérôme KIEFFER"
-__date__ = "25/05/2023"
+__date__ = "12/12/2024"
 __copyright__ = "2021-2024, ESRF, France"
 __licence__ = "MIT"
 
@@ -193,24 +193,24 @@ class OclMultiAnalyzer:
                              nframes)
         except:
             max_frames = None
-        logger.info(f"Allocate `out_norm` on device for {4*self.NUM_CRYSTAL*nbin/1e6}MB")
+        logger.info(f"Allocate `out_norm` on device for {4*self.NUM_CRYSTAL*nbin/1e6:.3f}MB")
         self.buffers["out_norm"] = cla.zeros(self.queue, (self.NUM_CRYSTAL, nbin), dtype=numpy.int32)
-        logger.info(f"Allocate `out_signal` on device for {4*self.NUM_CRYSTAL*nbin*num_col/1e6}MB")
+        logger.info(f"Allocate `out_signal` on device for {4*self.NUM_CRYSTAL*nbin*num_col/1e6:.3f}MB")
         self.buffers["out_signal"] = cla.zeros(self.queue, (self.NUM_CRYSTAL, nbin, num_col), dtype=numpy.int32)
         if max_frames:
             shape = self.set_shape(columnorder, max_frames, num_col, num_row)
-            logger.info(f"Allocate partial `roicoll` on device for {numpy.dtype(numpy.int32).itemsize*self.NUM_CRYSTAL*num_row*num_col*max_frames/1e6}MB")
+            logger.info(f"Allocate partial `roicoll` on device for {float(numpy.dtype(numpy.int32).itemsize)*self.NUM_CRYSTAL*num_row*num_col*max_frames/1e6:.3f}MB")
             self.buffers["roicoll"] = cla.empty(self.queue, shape, dtype=numpy.int32)
-            logger.info(f"Allocate partial  `mon` on device for {numpy.dtype(numpy.int32).itemsize*max_frames/1e6}MB")
+            logger.info(f"Allocate partial  `mon` on device for {numpy.dtype(numpy.int32).itemsize*max_frames/1e6:.3f}MB")
             self.buffers["monitor"] = cla.empty(self.queue, (max_frames), dtype=numpy.int32)
-            logger.info(f"Allocate partial  `arm` on device for {numpy.dtype(numpy.float64).itemsize*max_frames/1e6}MB")
+            logger.info(f"Allocate partial  `arm` on device for {numpy.dtype(numpy.float64).itemsize*max_frames/1e6:.3f}MB")
             self.buffers["arm"] = cla.empty(self.queue, (max_frames), dtype=numpy.float64)
         else:
-            logger.info(f"Allocate complete `roicoll` on device for {roicoll.nbytes/1e6}MB")
+            logger.info(f"Allocate complete `roicoll` on device for {roicoll.nbytes/1e6:.3f}MB")
             self.buffers["roicoll"] = cla.to_device(self.queue, roicoll)
-            logger.info(f"Allocate complete `mon` on device for {mon.nbytes/1e6}MB")
+            logger.info(f"Allocate complete `mon` on device for {mon.nbytes/1e6:.3f}MB")
             self.buffers["monitor"] = cla.to_device(self.queue, mon)
-            logger.info(f"Allocate complete `arm` on device for {arm.nbytes/1e6}MB")
+            logger.info(f"Allocate complete `arm` on device for {arm.nbytes/1e6:.3f}MB")
             self.buffers["arm"] = cla.to_device(self.queue, arm)
         kwags = self.kernel_arguments["integrate"]
         kwags["roicoll"] = self.buffers["roicoll"].data

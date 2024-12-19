@@ -1,7 +1,7 @@
 __authors__ = ["Jérôme Kieffer"]
 __license__ = "MIT"
-__date__ = "25/05/2023"
-__copyright__ = "2021-2022, ESRF, France"
+__date__ = "12/12/2024"
+__copyright__ = "2021-2024, ESRF, France"
 
 import os
 import posixpath
@@ -33,7 +33,7 @@ except ImportError:
 else:
     CMP = hdf5plugin.Bitshuffle()
 
-from . import version
+from . import __version__
 
 BlockDescription = namedtuple("BlockDescription", "filename dataset start stop")
 BlockRead = namedtuple("BlockRead", "description data")
@@ -42,6 +42,8 @@ Result = namedtuple(
     "Result", "tth signal norm cycles",
     defaults=(None, None, None, None)
 )
+FSCAN = namedtuple("FSCAN", "motor start step_size npoints step_time")
+FSCAN.stop = property(lambda self: self.start+self.step_size*self.npoints)
 
 
 def topas_parser(infile):
@@ -129,7 +131,19 @@ def ID22_bliss_parser(infile, entries=None, exclude_entries=None, block_size=Non
             try:
                 entry_grp = nxs.h5[entry]
                 roicol = entry_grp["measurement/eiger_roi_collection"]
-                arm = entry_grp["measurement/tth"]
+                scan_col = entry_grp["instrument/fscan_parameters"]
+                motor_name= scan_col["motor"][()]
+                try:
+                    motor_name = motor_name.decode()
+                except:
+                    pass
+                scan = entry_dict["scan"] = FSCAN(motor_name, 
+                            float(scan_col["start_pos"][()]),
+                            float(scan_col["step_size"][()]),
+                            int(scan_col["npoints"][()]),
+                            float(scan_col["step_time"][()]))
+                
+                arm = entry_grp[f"measurement/{scan.motor}"]
                 mon = entry_grp["measurement/mon"]
                 kept_points = min(len(roicol), len(arm), len(mon))
                 entry_dict["arm"] = arm[:kept_points]
@@ -146,8 +160,9 @@ def ID22_bliss_parser(infile, entries=None, exclude_entries=None, block_size=Non
 
                 entry_dict["tha"] = entry_grp["instrument/positioners/manom"][()]
                 entry_dict["thd"] = entry_grp["instrument/positioners/mantth"][()]
-            except KeyError:
-                continue
+            except KeyError as error:
+                logger.warning(f"Unable to parse entry {entry}: {type(error)}: {error}")
+                
             res[entry] = entry_dict
     if used_memory < 2 * block_size:
         "small dataset"
@@ -433,8 +448,8 @@ class Nexus(object):
         """
         entry_grp = self.new_entry(entry)
         pyFAI_grp = self.new_class(entry_grp, subentry, "NXsubentry")
-        pyFAI_grp["definition_local"] = str("pyFAI")
-        pyFAI_grp["definition_local"].attrs["version"] = str(version)
+        pyFAI_grp["definition_local"] = str("multianalyzer")
+        pyFAI_grp["definition_local"].attrs["version"] = str(__version__)
         det_grp = self.new_class(pyFAI_grp, name, "NXdetector")
         return det_grp
 
@@ -551,7 +566,7 @@ def save_rebin(filename, beamline="id22", name="id22rebin", topas=None, res=None
         process_grp = nxs.new_class(entry, "id22rebin", class_type="NXprocess")
         process_grp["program"] = name
         process_grp["sequence_index"] = 1
-        process_grp["version"] = version
+        process_grp["version"] = __version__
         process_grp["date"] = get_isotime()
         process_grp.create_dataset("argv", data=numpy.array(sys.argv, h5py.string_dtype("utf8"))).attrs["help"] = "Command line arguments"
         process_grp.create_dataset("cwd", data=os.getcwd()).attrs["help"] = "Working directory"
@@ -586,7 +601,8 @@ def save_rebin(filename, beamline="id22", name="id22rebin", topas=None, res=None
                 Ima_ds.attrs["axes"] = ["offset", "2th"]
                 offset_ds = data_grp.create_dataset("offset", data=numpy.rad2deg(topas["offset"]))
                 offset_ds.attrs["unit"] = "deg"
-                weights = numpy.array(topas.get("scale"))
+                if "scale" in topas:
+                    weights = numpy.array(topas["scale"])
             else:
                 Ima_ds.attrs["axes"] = [".", "2th"]
 
@@ -596,6 +612,7 @@ def save_rebin(filename, beamline="id22", name="id22rebin", topas=None, res=None
             weights = numpy.atleast_2d(weights).T
             # print(weights.shape)
             # print(scale.shape)
+            # print(I_sum.shape, weights.shape)
             I_avg = (weights * scale * I_sum).sum(axis=0) / (weights * norm).sum(axis=0)
             I_ds = data_grp.create_dataset("I_avg", data=I_avg , **CMP)
             I_ds.attrs["interpretation"] = "spectrum"
@@ -604,7 +621,7 @@ def save_rebin(filename, beamline="id22", name="id22rebin", topas=None, res=None
 
             data_grp.attrs["signal"] = posixpath.basename(I_ds.name)
             entry.attrs["default"] = data_grp.name
-            if len(res) >= 4:
+            if len(res) >= 4 and res[3] is not None:
                 debug_ds = data_grp.create_dataset("cycles", data=res[3] , **CMP)
                 debug_ds.attrs["interpretation"] = "image"
                 debug_ds.attrs["info"] = "Number of refinement cycle to converge 2theta"

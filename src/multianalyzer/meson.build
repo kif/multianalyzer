@@ -1,10 +1,7 @@
 subdir('app')
 subdir('test')
 
-version_py = configure_file(input: '../version.py', output: '_version.py', copy: true)
-
 py.install_sources([
-	version_py,
 	'__init__.py',
 	'file_io.py',
 	'multianalyzer.cl',

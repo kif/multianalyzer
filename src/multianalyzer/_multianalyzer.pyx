@@ -4,7 +4,7 @@
 ##cython: linetrace=True
 
 __author__ = "Jérôme KIEFFER"
-__date__  = "25/05/2023"
+__date__  = "12/12/2024"
 __copyright__ = "2021-2022, ESRF, France"
 __licence__ = "MIT"
 
@@ -163,7 +163,7 @@ cdef class MultiAnalyzer:
         return self._Ln * (numpy.asarray(self.cos_rx) - numpy.asarray(self.sin_rx)*self.sin_ry*self.cot_tha)
         # return numpy.asarray(self._Ln) * (numpy.asarray(self.cos_rx)*self.sin_tha - numpy.asarray(self.sin_rx)*numpy.asarray(self.sin_ry)*self.cos_tha) / self.sin_tha
     
-    cdef float64_t _calc_zd(self, int idr, int ida) nogil:
+    cdef float64_t _calc_zd(self, int idr, int ida) noexcept nogil:
         """Calculate the distance to the center along z
         
         :param idr: index of ROI 
@@ -172,7 +172,7 @@ cdef class MultiAnalyzer:
         """
         return self.pixel * (idr - self._center[ida]) # -> in unit
 
-    cdef float64_t _init_phi(self, float64_t zd, float64_t tth) nogil:
+    cdef float64_t _init_phi(self, float64_t zd, float64_t tth) noexcept nogil:
         """Approximative value of the azimuthal angle
         
         :param zd: distance to the center of the detector
@@ -181,7 +181,7 @@ cdef class MultiAnalyzer:
         """
         return atan2(zd, (self.L+self.L2)*fabs(sin(tth)))
 
-    cdef float64_t _init_sin_phi(self, float64_t zd, float64_t sin_tth) nogil:
+    cdef float64_t _init_sin_phi(self, float64_t zd, float64_t sin_tth) noexcept nogil:
         """Approximative value of the sine of the azimuthal angle
         
         :param zd: distance to the center of the detector
@@ -199,7 +199,7 @@ cdef class MultiAnalyzer:
             # tan2_phi = tan_phi * tan_phi 
             # return copysign(sqrt(tan2_phi/(1.0+tan2_phi)), zd) 
 
-    cdef float64_t _calc_phi(self, int ida, float64_t zd, float64_t L3, float64_t tth) nogil:
+    cdef float64_t _calc_phi(self, int ida, float64_t zd, float64_t L3, float64_t tth) noexcept nogil:
         """Implementation of Eq29 
         :param ida: index of analyzer
         :param zd: height of ROI
@@ -219,7 +219,7 @@ cdef class MultiAnalyzer:
         res = asin(ratio) if fabs(ratio)<1.0 else copysign(0.5*pi, ratio)
         return res
 
-    cdef float64_t _calc_sin_phi(self, int ida, float64_t zd, float64_t L3, float64_t sin_tth) nogil:
+    cdef float64_t _calc_sin_phi(self, int ida, float64_t zd, float64_t L3, float64_t sin_tth) noexcept nogil:
         """Implementation of Eq29, alternative implementation based on sin 
         :param ida: index of analyzer
         :param zd: height of ROI
@@ -239,7 +239,7 @@ cdef class MultiAnalyzer:
         return fmin(1.0, fmax(ratio, -1.0))
 
     
-    cdef float64_t _calc_L3(self, int ida, float64_t arm, float64_t tth, float64_t phi) nogil:
+    cdef float64_t _calc_L3(self, int ida, float64_t arm, float64_t tth, float64_t phi) noexcept nogil:
         """Implementation Eq28.
         
         Calculate the total distance from analyzer (at diffraction point) to detector
@@ -275,7 +275,7 @@ cdef class MultiAnalyzer:
         return num/den
     
     cdef float64_t _calc_L3_v2(self, int ida, float64_t sin_arm_d, float64_t cos_arm_d, float64_t sin_arm_a_n, float64_t cos_arm_a_n, 
-                            float64_t sin_tth, float64_t cos_tth, float64_t sin_phi, float64_t cos_phi) nogil:
+                            float64_t sin_tth, float64_t cos_tth, float64_t sin_phi, float64_t cos_phi) noexcept nogil:
         """Implementation Eq28.
         
         Calculate the total distance from analyzer (at diffraction point) to detector
@@ -299,7 +299,7 @@ cdef class MultiAnalyzer:
             + sin_arm_d*(sin_tth*cos_phi + 2.0 * sin_tha*(sin_arm_a_n*sin_rx*sin_ry - cos_arm_a_n*cos_rx))
         return num/den
 
-    cdef float64_t _calc_tth(self, int ida, float64_t arm, float64_t phi) nogil:
+    cdef float64_t _calc_tth(self, int ida, float64_t arm, float64_t phi) noexcept nogil:
         """Calculate the 2th from Eq 31: 
         
         resolution by development of cos(a-b)
@@ -371,7 +371,7 @@ cdef class MultiAnalyzer:
         S = S1 if fabs(arm_n-S1)<fabs(arm_n-S2) else S2
         return S
 
-    cdef float64_t _calc_tth_v2(self, int ida, float64_t arm_n, float64_t sin_arm_a, float64_t cos_arm_a, float64_t sin_phi, float64_t cos_phi) nogil:
+    cdef float64_t _calc_tth_v2(self, int ida, float64_t arm_n, float64_t sin_arm_a, float64_t cos_arm_a, float64_t sin_phi, float64_t cos_phi) noexcept nogil:
         """Calculate the 2th from Eq 31: 
         
         resolution by development of cos(a-b)
@@ -447,7 +447,7 @@ cdef class MultiAnalyzer:
 
     cdef float64_t _refine(self, int idr, int ida, 
                         float64_t arm, float64_t resolution=1e-8, int niter=250, 
-                        float64_t sin_phi_max=1.0, int idf=-1) nogil:
+                        float64_t sin_phi_max=1.0, int idf=-1) noexcept nogil:
         """Refine with the angles in radians
         
         :param idr: index of ROI
