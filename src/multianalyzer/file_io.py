@@ -95,7 +95,7 @@ def ID22_bliss_parser(infile, entries=None, exclude_entries=None, block_size=Non
     
     
     :return: dict with entries containing each:
-        * tha: the acceptance angle of the analyzer
+        * tha: incident angle of the analyzer crystal(°) (Bragg angle)
         * thd: the diffractio angle of the analyzer (~2*tha)
         * roicol: A collection of ROI for each frame OR
         * roicol_lst: a list of BlockDescriptor to be read by the RoiColReader

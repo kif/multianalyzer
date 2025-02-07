@@ -28,7 +28,7 @@ class OclMultiAnalyzer:
         :param L2: distance from the analyzer to the detector 
         :param pixel: pixel size
         :param center: position of the center on the detector (in pixel)
-        :param tha: acceptance angle of the analyzer crystal(°)
+        :param tha: incident angle of the analyzer crystal(°) (Bragg angle)
         :param thd: diffraction angle of the analyzer crystal(°) 2x tha
         :param psi: Offset of angles (in 2th) of the analyzer crystals
         :param rollx: mis-orientation of the analyzer along x (°)
