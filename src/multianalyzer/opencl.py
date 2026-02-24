@@ -1,7 +1,7 @@
 
 __author__ = "Jérôme KIEFFER"
-__date__ = "12/12/2024"
-__copyright__ = "2021-2024, ESRF, France"
+__date__ = "24/02/2026"
+__copyright__ = "2021-2026, ESRF, France"
 __licence__ = "MIT"
 
 import os
@@ -189,7 +189,7 @@ class OclMultiAnalyzer:
 
         arm = numpy.deg2rad(arm)
         try:
-            max_frames = min(int(int(self.ctx.devices[0].max_mem_alloc_size) / (numpy.dtype(numpy.int32).itemsize * self.NUM_CRYSTAL * num_row)),
+            max_frames = min(self.ctx.devices[0].max_mem_alloc_size // (numpy.dtype(numpy.int32).itemsize * self.NUM_CRYSTAL * num_row * num_col),
                              nframes)
         except:
             max_frames = None
